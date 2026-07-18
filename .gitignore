@@ -1,3 +1,6 @@
+# Claude Code (personal, not shared)
+.claude/
+
 # macOS
 .DS_Store
 .AppleDouble
@@ -16,6 +19,7 @@ uv.lock.tmp
 # Model artifacts (large, not meant to be committed)
 models/
 output/
+output_vlm/
 *.safetensors
 *.gguf
 

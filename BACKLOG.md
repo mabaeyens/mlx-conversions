@@ -24,6 +24,10 @@ niche base-model audience).
 - [x] Write `scripts/convert.py` (wraps `mlx_lm` internals + `huggingface_hub` upload) — see CHANGELOG for why it doesn't call `mlx_lm.convert.convert()` directly
 - [x] Run first conversion (3B base) end-to-end, log actual time/RAM behavior in CHANGELOG.md
 - [x] Convert `mistralai/Ministral-3-8B-Base-2512` and `mistralai/Ministral-3-14B-Base-2512`
-- [ ] Rotate the HF token used for the first upload — it was pasted into a chat session to debug the permission issue, so treat it as compromised regardless of whether anything else went wrong
-- [ ] Optionally publish 6-bit + bf16 variants for the 3B/8B to match mlx-community's usual multi-precision convention (see note above)
-- [ ] Original conversion queue is now empty — next step is finding new candidates (re-run the diff against `mistralai`'s catalog periodically, or expand scope to other orgs)
+- [x] Rotate the HF token used for the first upload — done
+- [x] Fix the 3 published models being incomplete (mlx_lm silently dropped the vision tower + multimodal projector on this vision-language family) — re-converted with `scripts/convert_vlm.py` (mlx-vlm) and re-published all 3, see CHANGELOG
+- [x] Write real model cards for the 3 published models (description, quantization notes, family table) — via the new `mlx-model-card` skill
+- [x] Set up the weekly candidate-scan routine (see specs/conversion-queue-automation.md) — cloud routine `trig_01X1Z7iv5vwZVLwyG423YY82`, Saturdays 07:00 UTC
+- [ ] Optionally publish 6-bit + bf16 variants for the 3B/8B to match mlx-community's usual multi-precision convention (see note above) — needs a `--no-quantize` flag added to `convert_vlm.py` first for the bf16 case
+- [ ] Write `scripts/verify.py` automating the structural tensor-prefix check from specs/model-verification.md, and run the functional (generation) check retroactively on all 3 published models
+- [ ] Write `scripts/scan_candidates.py` so the weekly routine's logic also exists as a locally-runnable script, not only as instructions embedded in the routine's prompt
