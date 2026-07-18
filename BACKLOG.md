@@ -8,7 +8,7 @@ are already fully covered by mlx-community (multiple bit-depths each) — the
 open gap is the Base (pretrained, non-chat-tuned) checkpoints:
 
 - [x] `mistralai/Ministral-3-3B-Base-2512` (~3B, ~6GB bf16) — done 2026-07-18, published as [`mlx-community/Ministral-3-3B-Base-2512-4bit`](https://huggingface.co/mlx-community/Ministral-3-3B-Base-2512-4bit)
-- [ ] `mistralai/Ministral-3-8B-Base-2512` (~8B, ~16GB bf16)
+- [x] `mistralai/Ministral-3-8B-Base-2512` (~8B, ~16GB bf16) — done 2026-07-18, published as [`mlx-community/Ministral-3-8B-Base-2512-4bit`](https://huggingface.co/mlx-community/Ministral-3-8B-Base-2512-4bit)
 - [ ] `mistralai/Ministral-3-14B-Base-2512` (~14B, ~28GB bf16) — tightest fit on 32GB M5, expect some paging during conversion
 
 Default quant: 4-bit, group_size=64 (matches the audit in mira-core's
