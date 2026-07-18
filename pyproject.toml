@@ -8,6 +8,8 @@ dependencies = [
     "mlx-lm>=0.20",
     "huggingface-hub>=0.25",
     "mlx-vlm>=0.6.5",
+    "torch>=2.13.0",
+    "torchvision>=0.28.0",
 ]
 
 [build-system]

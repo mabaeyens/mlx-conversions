@@ -24,6 +24,8 @@ uv run python scripts/convert_vlm.py --hf-path <repo> --upload-to <mlx-community
 - Check `mlx-community` doesn't already have the target model/quant before converting — avoid duplicate work.
 - No dependency on mira-core, mira-mlx, or any other project in this workspace — this repo must stand alone.
 - Before publishing, do the structural check in specs/model-verification.md (compare tensor-prefix sets between source and output) — a successful conversion + plausible file size is not sufficient evidence nothing was dropped.
+- For vision-language conversions specifically: `mlx_vlm.convert()`'s internal `processor.save_pretrained()` call regenerates `processor_config.json`/`tokenizer_config.json`/`special_tokens_map.json` in a form plain `transformers.AutoProcessor` can't reload (found 2026-07-18 on the Pixtral/Mistral3 processor). `scripts/convert_vlm.py` restores the source's originals verbatim after conversion — don't remove that step, and if writing a new conversion path, keep it.
+- **Once a model is uploaded AND has passed `scripts/verify.py` (structural + functional), delete its local copy** (`rm -rf` the output directory) — don't keep converted weights on disk after they're confirmed safe on the Hub. Keep the local copy only while a model is still unverified or mid-debugging.
 
 ## Working style
 Solo maintainer, low-frequency iteration. Prefer plain scripts over frameworks. Log every conversion (source repo, quant settings, output size, time taken) in CHANGELOG.md as it happens, not after.
