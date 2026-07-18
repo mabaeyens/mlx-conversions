@@ -9,7 +9,7 @@ open gap is the Base (pretrained, non-chat-tuned) checkpoints:
 
 - [x] `mistralai/Ministral-3-3B-Base-2512` (~3B, ~6GB bf16) — done 2026-07-18, published as [`mlx-community/Ministral-3-3B-Base-2512-4bit`](https://huggingface.co/mlx-community/Ministral-3-3B-Base-2512-4bit)
 - [x] `mistralai/Ministral-3-8B-Base-2512` (~8B, ~16GB bf16) — done 2026-07-18, published as [`mlx-community/Ministral-3-8B-Base-2512-4bit`](https://huggingface.co/mlx-community/Ministral-3-8B-Base-2512-4bit)
-- [ ] `mistralai/Ministral-3-14B-Base-2512` (~14B, ~28GB bf16) — tightest fit on 32GB M5, expect some paging during conversion
+- [x] `mistralai/Ministral-3-14B-Base-2512` (~14B, ~28GB bf16) — done 2026-07-18, published as [`mlx-community/Ministral-3-14B-Base-2512-4bit`](https://huggingface.co/mlx-community/Ministral-3-14B-Base-2512-4bit). No memory-pressure issues on the 32GB M5 in practice — 4 min end-to-end, no swapping observed.
 
 Default quant: 4-bit, group_size=64 (matches the audit in mira-core's
 `docs/model-cache.md` — uniform 4-bit beat mixed-precision on Apple Silicon).
@@ -23,5 +23,7 @@ niche base-model audience).
 - [x] Confirm mlx-community org push access — `roleInOrg: contributor` is sufficient, but the HF **token** must have `repo.write` scoped to the org specifically (a plain "read" token, or a fine-grained token without that scope, gets a 403 on `create_repo` even for an org member). Use a fine-grained token with write access scoped to `mlx-community`.
 - [x] Write `scripts/convert.py` (wraps `mlx_lm` internals + `huggingface_hub` upload) — see CHANGELOG for why it doesn't call `mlx_lm.convert.convert()` directly
 - [x] Run first conversion (3B base) end-to-end, log actual time/RAM behavior in CHANGELOG.md
-- [ ] Convert `mistralai/Ministral-3-8B-Base-2512` and `mistralai/Ministral-3-14B-Base-2512`
+- [x] Convert `mistralai/Ministral-3-8B-Base-2512` and `mistralai/Ministral-3-14B-Base-2512`
 - [ ] Rotate the HF token used for the first upload — it was pasted into a chat session to debug the permission issue, so treat it as compromised regardless of whether anything else went wrong
+- [ ] Optionally publish 6-bit + bf16 variants for the 3B/8B to match mlx-community's usual multi-precision convention (see note above)
+- [ ] Original conversion queue is now empty — next step is finding new candidates (re-run the diff against `mistralai`'s catalog periodically, or expand scope to other orgs)
