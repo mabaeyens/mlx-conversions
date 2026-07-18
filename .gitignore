@@ -18,8 +18,7 @@ uv.lock.tmp
 
 # Model artifacts (large, not meant to be committed)
 models/
-output/
-output_vlm/
+output*/
 *.safetensors
 *.gguf
 

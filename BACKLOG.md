@@ -33,5 +33,7 @@ niche base-model audience).
 - [x] Add `--no-quantize` flag to `convert_vlm.py` for the bf16 multi-precision case
 - [x] Add discoverability tags + honest verification-status notes to all 3 published cards (style modeled on `mlx-community/Inkling-mlx-4bit`)
 - [x] Local cleanup policy adopted: delete a model's local copy once uploaded + verified (see CLAUDE.md) — done for all 3 Base models, ~33GB freed
-- [ ] Publish 6-bit, 8-bit, and 16-bit (bf16) variants for 3B/8B/14B, hardware permitting on the 32GB M5 — in progress
-- [ ] Build an end-to-end pipeline script/skill (`scripts/pipeline.py`) covering: pick convert.py vs convert_vlm.py, convert, verify, write card, upload, update BACKLOG/CHANGELOG, delete local copy — see specs/ for the pieces this composes
+- [ ] Publish 6-bit, 8-bit, and 16-bit (bf16) variants for 3B/8B/14B, hardware permitting on the 32GB M5 — in progress via `scripts/convert_all_precisions.py`
+- [x] Build an end-to-end pipeline script/skill (`scripts/pipeline.py` + `mlx-convert` skill) covering: pick convert.py vs convert_vlm.py, convert, verify, write card, upload, update BACKLOG/CHANGELOG, delete local copy. **Caveat: only smoke-tested on the "already exists, skip" path so far** — hasn't yet run a full fresh conversion end-to-end. Also: `--no-quantize` only works through this pipeline for VLM models (`scripts/convert.py`'s text-only path still needs that flag added — the script refuses cleanly rather than silently ignoring it).
+- [ ] Run `scripts/pipeline.py` on an actual new (not-yet-converted) model to prove the full path, not just the skip-path
+- [ ] Add `--no-quantize` to `scripts/convert.py` (text-only) to match `convert_vlm.py`, so `pipeline.py` supports bf16 passthrough for non-VLM models too
