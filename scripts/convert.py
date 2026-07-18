@@ -10,13 +10,50 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import glob
 import shutil
 import tempfile
 import time
 from pathlib import Path
 
-from huggingface_hub import HfApi
-from mlx_lm.convert import convert
+from huggingface_hub import HfApi, snapshot_download
+from mlx_lm.utils import (
+    create_model_card,
+    load,
+    quantize_model,
+    save_config,
+    save_model,
+)
+
+
+def convert(hf_path: str, mlx_path: Path, q_bits: int, q_group_size: int) -> None:
+    """Re-implements mlx_lm.convert.convert()'s quantize+save steps, but avoids
+    its save() -> hf_repo_to_path() call, which requires the ENTIRE source repo
+    snapshot to already be cached locally (local_files_only=True) even though it
+    only ever reads *.py and generation_config.json from it. Mistral-family repos
+    ship a large redundant `consolidated.safetensors` file (a duplicate of the
+    sharded weights in a different layout) that isn't part of mlx_lm's normal
+    fetch, so that strict completeness check fails there and would otherwise
+    force downloading several extra GB just to satisfy a check whose result is
+    never used."""
+    print("[INFO] Loading")
+    model, tokenizer, config = load(hf_path, return_config=True, lazy=True)
+
+    print("[INFO] Quantizing")
+    model, config = quantize_model(model, config, q_group_size, q_bits, mode="affine")
+
+    save_model(mlx_path, model, donate_model=True)
+    save_config(config, config_path=mlx_path / "config.json")
+    tokenizer.save_pretrained(mlx_path)
+
+    # Only fetch the two patterns save() actually uses, instead of requiring
+    # the full snapshot (which would pull consolidated.safetensors unnecessarily).
+    local_src = Path(snapshot_download(hf_path, allow_patterns=["*.py", "generation_config.json"]))
+    for pattern in ["*.py", "generation_config.json"]:
+        for file in glob.glob(str(local_src / pattern)):
+            shutil.copy(file, mlx_path)
+
+    create_model_card(mlx_path, hf_path)
 
 
 def main() -> None:
@@ -29,18 +66,18 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Convert only, skip upload even if --upload-to is set")
     args = parser.parse_args()
 
-    out_dir = Path(args.mlx_path) if args.mlx_path else Path(tempfile.mkdtemp(prefix="mlx-conv-"))
-    out_dir.mkdir(parents=True, exist_ok=True)
+    # mlx_lm's save_model() creates mlx_path itself; hand it a path that does
+    # not exist yet (only ensure the parent does).
+    if args.mlx_path:
+        out_dir = Path(args.mlx_path)
+        out_dir.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir = Path(tempfile.mkdtemp(prefix="mlx-conv-"))
+        out_dir.rmdir()
 
     print(f"[convert] {args.hf_path} -> {out_dir} (q_bits={args.q_bits}, group_size={args.q_group_size})")
     start = time.monotonic()
-    convert(
-        args.hf_path,
-        mlx_path=str(out_dir),
-        quantize=True,
-        q_bits=args.q_bits,
-        q_group_size=args.q_group_size,
-    )
+    convert(args.hf_path, out_dir, args.q_bits, args.q_group_size)
     elapsed = time.monotonic() - start
     size_gb = sum(f.stat().st_size for f in out_dir.rglob("*") if f.is_file()) / 1e9
     print(f"[convert] done in {elapsed / 60:.1f} min, output size {size_gb:.2f} GB")

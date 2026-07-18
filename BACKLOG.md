@@ -7,7 +7,7 @@ conversions (2026-07-18). The Instruct/Reasoning checkpoints across 3B/8B/14B
 are already fully covered by mlx-community (multiple bit-depths each) — the
 open gap is the Base (pretrained, non-chat-tuned) checkpoints:
 
-- [ ] `mistralai/Ministral-3-3B-Base-2512` (~3B, ~6GB bf16) — first target, smallest, validates the workflow end-to-end
+- [x] `mistralai/Ministral-3-3B-Base-2512` (~3B, ~6GB bf16) — done 2026-07-18, published as [`mlx-community/Ministral-3-3B-Base-2512-4bit`](https://huggingface.co/mlx-community/Ministral-3-3B-Base-2512-4bit)
 - [ ] `mistralai/Ministral-3-8B-Base-2512` (~8B, ~16GB bf16)
 - [ ] `mistralai/Ministral-3-14B-Base-2512` (~14B, ~28GB bf16) — tightest fit on 32GB M5, expect some paging during conversion
 
@@ -20,6 +20,8 @@ niche base-model audience).
 
 ## Not yet done
 
-- [ ] Confirm mlx-community org push access (or plan: push to personal namespace first, request transfer)
-- [ ] Write `scripts/convert.py` (wraps `mlx_lm.convert` + `huggingface-cli upload`)
-- [ ] Run first conversion (3B base) end-to-end, log actual time/RAM behavior in CHANGELOG.md
+- [x] Confirm mlx-community org push access — `roleInOrg: contributor` is sufficient, but the HF **token** must have `repo.write` scoped to the org specifically (a plain "read" token, or a fine-grained token without that scope, gets a 403 on `create_repo` even for an org member). Use a fine-grained token with write access scoped to `mlx-community`.
+- [x] Write `scripts/convert.py` (wraps `mlx_lm` internals + `huggingface_hub` upload) — see CHANGELOG for why it doesn't call `mlx_lm.convert.convert()` directly
+- [x] Run first conversion (3B base) end-to-end, log actual time/RAM behavior in CHANGELOG.md
+- [ ] Convert `mistralai/Ministral-3-8B-Base-2512` and `mistralai/Ministral-3-14B-Base-2512`
+- [ ] Rotate the HF token used for the first upload — it was pasted into a chat session to debug the permission issue, so treat it as compromised regardless of whether anything else went wrong
