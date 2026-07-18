@@ -33,9 +33,13 @@ OUTPUT_ROOT = Path(__file__).parent.parent / "output_precisions"
 
 
 def repo_exists(repo: str) -> bool:
+    """True only if the repo has actual weight files, not just an empty
+    shell (e.g. a `.gitattributes`-only repo left behind by an interrupted
+    upload) -- otherwise an interrupted run gets permanently skipped as
+    "already done" on every retry."""
     try:
-        HfApi().model_info(repo)
-        return True
+        info = HfApi().model_info(repo)
+        return any(f.rfilename.endswith(".safetensors") for f in info.siblings)
     except Exception:
         return False
 

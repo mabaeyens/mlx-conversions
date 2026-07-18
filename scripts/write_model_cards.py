@@ -110,6 +110,19 @@ UNVERIFIED_NOTE = """> **Community note.** Structural check confirms the vision 
 > hasn't been confirmed. Please open a discussion with results if you try it
 > before this note is updated."""
 
+HARDWARE_LIMITED_NOTE = """> **Community note.** Structural check confirms the vision tower and
+> multimodal projector were carried over intact (not dropped, which is a real
+> failure mode for text-only conversion tools on vision-language models).
+> **Functional check (running generation) could not be completed on the
+> maintainer's hardware** -- this bf16 (unquantized) checkpoint needs ~26.6GB
+> of GPU memory to generate, which exceeds the practical ceiling on a 32GB
+> Apple Silicon machine (reproducibly hits a Metal out-of-memory error, not a
+> one-off fluke). The weights themselves are an unmodified dtype/format
+> conversion (no quantization math applied), so there's no reason to expect a
+> correctness issue -- but generation hasn't actually been run end-to-end. If
+> you have a Mac with more unified memory (64GB+), please open a discussion
+> with your results."""
+
 BODY_TEMPLATE = """
 # {repo}
 
@@ -171,7 +184,8 @@ def bit_tag(bits: int | None) -> str:
 
 
 def render_and_upload(repo: str, source: str, bits: int | None, group_size: int | None,
-                       output_size: str, avg_bpw: str, verified: bool) -> None:
+                       output_size: str, avg_bpw: str, verified: bool,
+                       note_override: str | None = None) -> None:
     api = HfApi()
     size = source.split("-")[2]  # e.g. "3B"
     name = f"Ministral 3 {size} Base 2512"
@@ -189,7 +203,7 @@ def render_and_upload(repo: str, source: str, bits: int | None, group_size: int 
         avg_bpw=avg_bpw,
         output_size=output_size,
         family_table=family_table(repo),
-        verification_note=VERIFIED_NOTE if verified else UNVERIFIED_NOTE,
+        verification_note=note_override if note_override is not None else (VERIFIED_NOTE if verified else UNVERIFIED_NOTE),
     )
     content = front_matter + "\n" + body
 

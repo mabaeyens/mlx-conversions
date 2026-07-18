@@ -6,11 +6,19 @@ converted, with what settings, and why.
 
 ## Description
 
-MLX conversion (`mlx_lm.convert`) is a standalone, local operation with no
+MLX conversion (`mlx_lm`/`mlx_vlm`) is a standalone, local operation with no
 dependency on any inference server or product codebase — this repo exists so
 that work has its own home instead of living inside an unrelated project. It
 runs entirely on Apple Silicon (Metal), so all conversion happens on-device;
 there is no cloud compute step.
+
+Source models can be **text-only** (`mlx_lm`) or **vision-language** (`mlx_vlm`,
+e.g. the Ministral-3 family) — picking the wrong tool silently drops the vision
+tower with no error, so the pipeline decides based on the source `config.json`
+rather than leaving that to memory. Every conversion is **verified** (structural
+tensor-prefix diff + functional generation, image+text too for VLMs) before it's
+considered published, and gets a real model card, not the bare auto-generated
+boilerplate.
 
 ## Requirements
 
@@ -30,12 +38,36 @@ huggingface-cli login
 
 ## Usage
 
+The end-to-end pipeline is the normal entry point — it picks `mlx_lm` vs
+`mlx_vlm` from the source's `config.json`, converts, uploads, verifies, writes
+a model card, updates `BACKLOG.md`/`CHANGELOG.md`, and deletes the local copy
+once verification passes:
+
 ```bash
-uv run python scripts/convert.py \
-  --hf-path mistralai/Ministral-3-3B-Base-2512 \
-  --upload-to mlx-community/Ministral-3-3B-Base-2512-4bit \
+uv run python scripts/pipeline.py \
+  --hf-path mistralai/Ministral-3-8B-Reasoning-2512 \
   --q-bits 4 --q-group-size 64
 ```
+
+Also available as the `mlx-convert` Claude Code skill (see
+[claude-skills](https://github.com/mabaeyens/claude-skills)):
+`/mlx-convert <hf-repo> [q-bits] [q-group-size]`.
+
+**Individual steps**, if you need to run one manually:
+
+| Script | Purpose |
+|---|---|
+| `scripts/scan_candidates.py` | Scan mistralai vs. mlx-community for unconverted models |
+| `scripts/convert.py` | Convert a text-only model (`mlx_lm`) |
+| `scripts/convert_vlm.py` | Convert a vision-language model (`mlx_vlm`), preserving the vision tower/projector |
+| `scripts/convert_all_precisions.py` | Convert a model at multiple quantization precisions in one pass |
+| `scripts/verify.py` | Structural + functional verification against the source model |
+| `scripts/write_model_cards.py` | Generate a real model card (description, provenance, tags) |
+| `scripts/fix_processor_metadata.py` | Hot-fix processor/tokenizer metadata files on an already-published repo |
+
+A weekly scheduled cloud routine (Saturdays 9am Madrid) re-runs the candidate
+scan and appends new findings to `BACKLOG.md` directly — see
+`specs/conversion-queue-automation.md`.
 
 See `BACKLOG.md` for the current conversion queue and `CHANGELOG.md` for what's
 already been published.
