@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+.AppleDouble
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# uv
+uv.lock.tmp
+
+# Model artifacts (large, not meant to be committed)
+models/
+*.safetensors
+*.gguf
+
+# Logs
+*.log
