@@ -24,3 +24,6 @@ output*/
 
 # Logs
 *.log
+
+# Local working guidance, not committed
+CLAUDE.md
