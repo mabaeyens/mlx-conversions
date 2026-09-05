@@ -2,9 +2,19 @@
 
 ## Status
 
-Draft. The candidate-scan logic exists only as ad hoc research done inline
-in a chat session (2026-07-18) — this documents it as a repeatable process
-and specifies a recurring job to keep it running without manual re-invocation.
+**Removed 2026-09-05.** The recurring cloud trigger (`trig_01X1Z7iv5vwZVLwyG423YY82`,
+Saturdays 07:00 UTC) was decommissioned after its first real run: the
+execution environment it ran in blocks `huggingface.co` at the network
+egress layer, so the scan could never fetch data — every run would have
+failed identically. The trigger needs manual deletion from the claude.ai/code
+scheduled-tasks UI (no tool available from within a session can remove a
+durable cloud trigger). `scripts/scan_candidates.py` still implements the
+logic below and works fine for a manual, local run in an environment that
+can reach the HF API — it's just no longer invoked automatically.
+
+The candidate-scan logic below exists only as ad hoc research done inline
+in a chat session (2026-07-18), formalized into a repeatable process and,
+briefly, a recurring job (see above for why that job is gone).
 
 ## Part 1 — Multi-precision variants
 
@@ -55,9 +65,11 @@ once, by hand, in a chat session. It should repeat on a schedule so new
 
 ### Recurring schedule
 
-Run this every Saturday. Given as a cron job via the `schedule` skill/tool
-(not the raw session-only `CronCreate`, which is capped at 7 days and dies
-with the session — this needs to actually persist week over week).
+**Removed** — see Status above. Was run every Saturday via a durable cloud
+trigger (not the session-only `CronCreate`, which is capped at 7 days and
+dies with the session); decommissioned because the execution environment
+couldn't reach `huggingface.co`. Re-adding this would need an execution
+environment with HF API access, not just re-creating the trigger.
 
 Report format: a short list of new candidates (if any), added to
 `BACKLOG.md`'s conversion queue directly, plus a one-line note if the scan
@@ -72,6 +84,7 @@ job stopped running").
 - [ ] Add a `--no-quantize` (bf16 passthrough) option to `scripts/convert.py`
   and `scripts/convert_vlm.py` for the multi-precision plan
 - [ ] Publish 6-bit + bf16 variants for the 3B/8B Ministral-3 Base models
-- [ ] Set up the actual recurring Saturday job (see BACKLOG.md)
+- [x] ~~Set up the actual recurring Saturday job~~ — done, then removed
+  2026-09-05 (see Status above)
 - [ ] Decide whether to extend the scan beyond `mistralai` to other orgs
   once the current family is fully covered across precisions
